@@ -1,7 +1,19 @@
-import { Body, Controller, Get, Param, Post } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  Param,
+  ParseUUIDPipe,
+  Patch,
+  Post,
+} from '@nestjs/common';
 import { CommandBus, QueryBus } from '@nestjs/cqrs';
+import { ChangeAlarmSeverityCommand } from './commands/change-alarm-severity.command';
 import { CreateAlarmCommand } from './commands/create-alarm.command';
+import { RenameAlarmCommand } from './commands/rename-alarm.command';
+import { ChangeAlarmSeverityDto } from './dtos/change-alarm-severity.dto';
 import { CreateAlarmDto } from './dtos/create-alarm.dto';
+import { RenameAlarmDto } from './dtos/rename-alarm.dto';
 import { GetAlarmByIdQuery } from './queries/get-alarm-by-id.query';
 import { GetAlarmsQuery } from './queries/get-alarms.query';
 
@@ -16,6 +28,24 @@ export class AlarmsController {
   async create(@Body() body: CreateAlarmDto) {
     return this.commandBus.execute(
       new CreateAlarmCommand(body.name, body.severity),
+    );
+  }
+
+  @Patch(':id/rename')
+  async renameAlarm(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() body: RenameAlarmDto,
+  ) {
+    return this.commandBus.execute(new RenameAlarmCommand(id, body.name));
+  }
+
+  @Patch(':id/severity')
+  async changeAlarmSeverity(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() body: ChangeAlarmSeverityDto,
+  ) {
+    return this.commandBus.execute(
+      new ChangeAlarmSeverityCommand(id, body.severity),
     );
   }
 
